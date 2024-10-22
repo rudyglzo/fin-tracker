@@ -1,8 +1,14 @@
-// client/src/App.js
+// src/App.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { ThemeProvider } from './contexts/ThemeContext';
+import MainLayout from './layouts/MainLayout';
+import { useTheme } from './contexts/ThemeContext';
 
-function App() {
+
+// Create a separate component for the main content
+const ExpenseTracker = () => {
+  const { isDark } = useTheme();
   const [expenses, setExpenses] = useState([]);
   const [newExpense, setNewExpense] = useState({
     description: '',
@@ -10,7 +16,6 @@ function App() {
     category: ''
   });
 
-  // Fetch expenses
   useEffect(() => {
     const fetchExpenses = async () => {
       try {
@@ -23,7 +28,6 @@ function App() {
     fetchExpenses();
   }, []);
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -36,50 +40,80 @@ function App() {
   };
 
   return (
-    <div className="App p-4">
-      <h1 className="text-2xl font-bold mb-4">Finance Tracker</h1>
+    <div className={`rounded-lg shadow-lg p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+      <h1 className="text-2xl font-bold mb-4">Add New Expense</h1>
       
-      {/* Add Expense Form */}
-      <form onSubmit={handleSubmit} className="mb-4">
-        <input
-          type="text"
-          placeholder="Description"
-          value={newExpense.description}
-          onChange={(e) => setNewExpense({...newExpense, description: e.target.value})}
-          className="border p-2 mr-2"
-        />
-        <input
-          type="number"
-          placeholder="Amount"
-          value={newExpense.amount}
-          onChange={(e) => setNewExpense({...newExpense, amount: e.target.value})}
-          className="border p-2 mr-2"
-        />
-        <input
-          type="text"
-          placeholder="Category"
-          value={newExpense.category}
-          onChange={(e) => setNewExpense({...newExpense, category: e.target.value})}
-          className="border p-2 mr-2"
-        />
-        <button type="submit" className="bg-blue-500 text-white p-2">
+      <form onSubmit={handleSubmit} className="mb-6 space-y-4">
+        <div className="space-y-2">
+          <input
+            type="text"
+            placeholder="Description"
+            value={newExpense.description}
+            onChange={(e) => setNewExpense({...newExpense, description: e.target.value})}
+            className={`w-full border rounded-lg p-2 ${
+              isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
+            }`}
+          />
+          <input
+            type="number"
+            placeholder="Amount"
+            value={newExpense.amount}
+            onChange={(e) => setNewExpense({...newExpense, amount: e.target.value})}
+            className={`w-full border rounded-lg p-2 ${
+              isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
+            }`}
+          />
+          <input
+            type="text"
+            placeholder="Category"
+            value={newExpense.category}
+            onChange={(e) => setNewExpense({...newExpense, category: e.target.value})}
+            className={`w-full border rounded-lg p-2 ${
+              isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
+            }`}
+          />
+        </div>
+        <button 
+          type="submit" 
+          className="w-full bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-lg transition-colors"
+        >
           Add Expense
         </button>
       </form>
 
-      {/* Expenses List */}
-      <div>
-        <h2 className="text-xl font-bold mb-2">Expenses</h2>
-        {expenses.map((expense) => (
-          <div key={expense._id} className="border p-2 mb-2">
-            <p>Description: {expense.description}</p>
-            <p>Amount: ${expense.amount}</p>
-            <p>Category: {expense.category}</p>
-            <p>Date: {new Date(expense.date).toLocaleDateString()}</p>
-          </div>
-        ))}
+      <div className="mt-8">
+        <h2 className="text-xl font-bold mb-4">Recent Expenses</h2>
+        <div className="space-y-4">
+          {expenses.map((expense) => (
+            <div 
+              key={expense._id} 
+              className={`p-4 rounded-lg ${
+                isDark ? 'bg-gray-700' : 'bg-gray-50'
+              }`}
+            >
+              <p className="font-semibold">{expense.description}</p>
+              <p className="text-sm text-blue-500">${expense.amount}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Category: {expense.category}
+              </p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Date: {new Date(expense.date).toLocaleDateString()}
+              </p>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
+  );
+};
+
+function App() {
+  return (
+    <ThemeProvider>
+      <MainLayout>
+        <ExpenseTracker />
+      </MainLayout>
+    </ThemeProvider>
   );
 }
 
