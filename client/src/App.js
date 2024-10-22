@@ -4,104 +4,105 @@ import axios from 'axios';
 import { ThemeProvider } from './contexts/ThemeContext';
 import MainLayout from './layouts/MainLayout';
 import { useTheme } from './contexts/ThemeContext';
+import { Building, Link, CreditCard, AlertCircle } from 'lucide-react';
 
-
-// Create a separate component for the main content
-const ExpenseTracker = () => {
+const FinanceDashboard = () => {
   const { isDark } = useTheme();
-  const [expenses, setExpenses] = useState([]);
-  const [newExpense, setNewExpense] = useState({
-    description: '',
-    amount: '',
-    category: ''
-  });
+  const [accounts, setAccounts] = useState([]);
+  const [transactions, setTransactions] = useState([]);
+  const [isLinked, setIsLinked] = useState(false);
 
-  useEffect(() => {
-    const fetchExpenses = async () => {
-      try {
-        const response = await axios.get('http://localhost:5000/api/expenses');
-        setExpenses(response.data);
-      } catch (error) {
-        console.error('Error fetching expenses:', error);
-      }
-    };
-    fetchExpenses();
-  }, []);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const response = await axios.post('http://localhost:5000/api/expenses', newExpense);
-      setExpenses([response.data, ...expenses]);
-      setNewExpense({ description: '', amount: '', category: '' });
-    } catch (error) {
-      console.error('Error adding expense:', error);
-    }
+  // This will be replaced with actual Plaid Link later
+  const handleConnectBank = () => {
+    console.log('Connecting bank...');
   };
 
   return (
-    <div className={`rounded-lg shadow-lg p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
-      <h1 className="text-2xl font-bold mb-4">Add New Expense</h1>
-      
-      <form onSubmit={handleSubmit} className="mb-6 space-y-4">
-        <div className="space-y-2">
-          <input
-            type="text"
-            placeholder="Description"
-            value={newExpense.description}
-            onChange={(e) => setNewExpense({...newExpense, description: e.target.value})}
-            className={`w-full border rounded-lg p-2 ${
-              isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
-            }`}
-          />
-          <input
-            type="number"
-            placeholder="Amount"
-            value={newExpense.amount}
-            onChange={(e) => setNewExpense({...newExpense, amount: e.target.value})}
-            className={`w-full border rounded-lg p-2 ${
-              isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
-            }`}
-          />
-          <input
-            type="text"
-            placeholder="Category"
-            value={newExpense.category}
-            onChange={(e) => setNewExpense({...newExpense, category: e.target.value})}
-            className={`w-full border rounded-lg p-2 ${
-              isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
-            }`}
-          />
-        </div>
-        <button 
-          type="submit" 
-          className="w-full bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-lg transition-colors"
-        >
-          Add Expense
-        </button>
-      </form>
-
-      <div className="mt-8">
-        <h2 className="text-xl font-bold mb-4">Recent Expenses</h2>
-        <div className="space-y-4">
-          {expenses.map((expense) => (
-            <div 
-              key={expense._id} 
-              className={`p-4 rounded-lg ${
-                isDark ? 'bg-gray-700' : 'bg-gray-50'
-              }`}
+    <div className="space-y-6">
+      {/* Bank Connection Section */}
+      {!isLinked && (
+        <div className={`rounded-lg shadow-lg p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+          <div className="text-center">
+            <Building className={`h-12 w-12 mx-auto ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
+            <h2 className="mt-4 text-2xl font-bold">Connect Your Bank Account</h2>
+            <p className={`mt-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+              Securely connect your bank account to get started with automatic transaction tracking
+            </p>
+            <button
+              onClick={handleConnectBank}
+              className="mt-4 px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg
+                flex items-center justify-center mx-auto space-x-2"
             >
-              <p className="font-semibold">{expense.description}</p>
-              <p className="text-sm text-blue-500">${expense.amount}</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Category: {expense.category}
-              </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Date: {new Date(expense.date).toLocaleDateString()}
-              </p>
-            </div>
-          ))}
+              <Link className="h-5 w-5" />
+              <span>Connect Bank Account</span>
+            </button>
+          </div>
         </div>
+      )}
+
+      {/* Account Overview */}
+      <div className={`rounded-lg shadow-lg p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+        <h2 className="text-xl font-bold mb-4">Connected Accounts</h2>
+        {accounts.length === 0 ? (
+          <div className="text-center py-6">
+            <CreditCard className={`h-8 w-8 mx-auto ${isDark ? 'text-gray-600' : 'text-gray-400'}`} />
+            <p className="mt-2 text-gray-500">No accounts connected yet</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {accounts.map((account) => (
+              <div key={account.id} className={`p-4 rounded-lg ${
+                isDark ? 'bg-gray-700' : 'bg-gray-50'
+              }`}>
+                <div className="flex justify-between items-center">
+                  <div>
+                    <p className="font-semibold">{account.name}</p>
+                    <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                      {account.type}
+                    </p>
+                  </div>
+                  <p className="text-lg font-bold">${account.balance}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Recent Transactions */}
+      <div className={`rounded-lg shadow-lg p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+        <h2 className="text-xl font-bold mb-4">Recent Transactions</h2>
+        {transactions.length === 0 ? (
+          <div className="text-center py-6">
+            <AlertCircle className={`h-8 w-8 mx-auto ${isDark ? 'text-gray-600' : 'text-gray-400'}`} />
+            <p className="mt-2 text-gray-500">No transactions available</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {transactions.map((transaction) => (
+              <div key={transaction.id} className={`p-4 rounded-lg ${
+                isDark ? 'bg-gray-700' : 'bg-gray-50'
+              }`}>
+                <div className="flex justify-between items-center">
+                  <div>
+                    <p className="font-semibold">{transaction.description}</p>
+                    <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                      {transaction.date}
+                    </p>
+                  </div>
+                  <p className={`text-lg font-bold ${
+                    transaction.amount < 0 ? 'text-red-500' : 'text-green-500'
+                  }`}>
+                    ${Math.abs(transaction.amount)}
+                  </p>
+                </div>
+                <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                  {transaction.category}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -111,7 +112,7 @@ function App() {
   return (
     <ThemeProvider>
       <MainLayout>
-        <ExpenseTracker />
+        <FinanceDashboard />
       </MainLayout>
     </ThemeProvider>
   );

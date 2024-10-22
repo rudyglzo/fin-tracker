@@ -1,6 +1,6 @@
 // src/layouts/MainLayout.jsx
 import React from 'react';
-import { Moon, Sun, CreditCard, PieChart, Wallet, Settings } from 'lucide-react';
+import { Moon, Sun, CreditCard, PieChart, Settings } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 
 const MainLayout = ({ children }) => {
@@ -15,7 +15,7 @@ const MainLayout = ({ children }) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center">
-              <Wallet className={`h-8 w-8 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
+              <CreditCard className={`h-8 w-8 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
               <span className={`ml-2 text-xl font-bold ${
                 isDark ? 'text-white' : 'text-gray-900'
               }`}>
