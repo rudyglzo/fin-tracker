@@ -1,4 +1,3 @@
-// client/src/components/PlaidLink.jsx
 import React, { useCallback, useEffect, useState } from 'react';
 import { usePlaidLink } from 'react-plaid-link';
 import axios from 'axios';
@@ -15,11 +14,12 @@ const PlaidLinkComponent = ({ onSuccess }) => {
     const generateToken = async () => {
       try {
         setLoading(true);
-        setError(null);
+        console.log('Requesting link token...');
         const response = await axios.post('http://localhost:5001/api/plaid/create-link-token');
+        console.log('Link token received:', response.data);
         setLinkToken(response.data.link_token);
       } catch (error) {
-        console.error('Error generating link token:', error);
+        console.error('Error getting link token:', error);
         setError('Failed to initialize bank connection. Please try again.');
       } finally {
         setLoading(false);
@@ -28,31 +28,25 @@ const PlaidLinkComponent = ({ onSuccess }) => {
     generateToken();
   }, []);
 
-  const onPlaidSuccess = useCallback(async (publicToken, metadata) => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await axios.post('http://localhost:5001/api/plaid/exchange-token', {
-        public_token: publicToken
-      });
-      
-      // Pass the transactions data to the parent component
-      onSuccess(response.data.transactions);
-    } catch (error) {
-      console.error('Error exchanging public token:', error);
-      setError('Failed to connect bank account. Please try again.');
-    } finally {
-      setLoading(false);
-    }
+  const onPlaidSuccess = useCallback((public_token, metadata) => {
+    console.log('Plaid Link success');
+    console.log('Public token:', public_token);
+    console.log('Metadata:', metadata);
+    onSuccess(public_token);
   }, [onSuccess]);
 
-  const { open, ready } = usePlaidLink({
+  const config = {
     token: linkToken,
     onSuccess: onPlaidSuccess,
     onExit: (err, metadata) => {
-      if (err) setError('Connection process interrupted. Please try again.');
+      console.log('Plaid Link exit:', err, metadata);
+      if (err != null) {
+        setError('Connection process interrupted. Please try again.');
+      }
     },
-  });
+  };
+
+  const { open, ready } = usePlaidLink(config);
 
   return (
     <div className="text-center">
@@ -66,21 +60,18 @@ const PlaidLinkComponent = ({ onSuccess }) => {
         onClick={() => open()}
         disabled={!ready || loading}
         className={`mt-4 px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg
-          flex items-center justify-center mx-auto space-x-2 ${
-            (!ready || loading) ? 'opacity-50 cursor-not-allowed' : ''
-          }`}
+          flex items-center justify-center mx-auto space-x-2 
+          ${(!ready || loading) ? 'opacity-50 cursor-not-allowed' : ''}`}
       >
         <Link className="h-5 w-5" />
         <span>{loading ? 'Connecting...' : 'Connect Your Bank'}</span>
       </button>
       
-      <p className="mt-2 text-sm text-gray-500">
-        For testing, use these credentials:
-        <br />
-        Username: user_good
-        <br />
-        Password: pass_good
-      </p>
+      <div className="mt-4 text-sm text-gray-500">
+        <p>For testing, use these credentials:</p>
+        <p className="font-mono mt-1">Username: user_good</p>
+        <p className="font-mono">Password: pass_good</p>
+      </div>
     </div>
   );
 };

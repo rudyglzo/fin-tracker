@@ -1,9 +1,7 @@
-// server/src/routes/plaid.js
 const express = require('express');
 const router = express.Router();
 const { Configuration, PlaidApi, PlaidEnvironments } = require('plaid');
 
-// Configure Plaid
 const configuration = new Configuration({
   basePath: PlaidEnvironments.sandbox,
   baseOptions: {
@@ -16,60 +14,72 @@ const configuration = new Configuration({
 
 const plaidClient = new PlaidApi(configuration);
 
-// Create link token
 router.post('/create-link-token', async (req, res) => {
   try {
     console.log('Creating link token...');
-    
     const response = await plaidClient.linkTokenCreate({
       user: { client_user_id: 'unique_user_id' },
       client_name: 'Finance Tracker',
       products: ['transactions'],
       country_codes: ['US'],
-      language: 'en',
-      redirect_uri: process.env.PLAID_REDIRECT_URI
+      language: 'en'
     });
     
-    console.log('Link token created successfully:', response.data);
+    console.log('Link token created successfully');
     res.json(response.data);
   } catch (error) {
-    console.error('Detailed Plaid error:', error.response?.data || error.message);
+    console.error('Error creating link token:', error);
+    console.error('Error details:', error.response?.data);
     res.status(500).json({
       error: error.message,
-      details: error.response?.data || 'No additional details'
+      details: error.response?.data
     });
   }
 });
 
-// Exchange public token
 router.post('/exchange-token', async (req, res) => {
   try {
-    const response = await plaidClient.itemPublicTokenExchange({
+    console.log('Exchanging public token:', req.body.public_token);
+    
+    const exchangeResponse = await plaidClient.itemPublicTokenExchange({
       public_token: req.body.public_token
     });
     
-    const accessToken = response.data.access_token;
+    console.log('Access token received');
+    const accessToken = exchangeResponse.data.access_token;
     
-    // Get transactions
-    const now = new Date();
-    const oneYearAgo = new Date();
-    oneYearAgo.setFullYear(now.getFullYear() - 1);
+    console.log('Getting accounts...');
+    const accountsResponse = await plaidClient.accountsGet({
+      access_token: accessToken
+    });
+    console.log('Accounts received:', accountsResponse.data.accounts.length);
+
+    console.log('Getting transactions...');
+    const startDate = '2023-01-01';
+    const endDate = '2024-12-31';
     
     const transactionsResponse = await plaidClient.transactionsGet({
       access_token: accessToken,
-      start_date: oneYearAgo.toISOString().split('T')[0],
-      end_date: now.toISOString().split('T')[0]
+      start_date: startDate,
+      end_date: endDate,
+      options: {
+        count: 500
+      }
     });
+    
+    console.log('Transactions received:', transactionsResponse.data.transactions.length);
 
     res.json({
       success: true,
+      accounts: accountsResponse.data.accounts,
       transactions: transactionsResponse.data.transactions
     });
   } catch (error) {
-    console.error('Exchange token error:', error.response?.data || error.message);
+    console.error('Error in exchange_token:', error);
+    console.error('Error details:', error.response?.data);
     res.status(500).json({
       error: error.message,
-      details: error.response?.data || 'No additional details'
+      details: error.response?.data
     });
   }
 });

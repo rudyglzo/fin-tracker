@@ -1,20 +1,35 @@
-// src/components/SpendingByCategory.jsx
 import React from 'react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { useTheme } from '../contexts/ThemeContext';
+import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 
-const SpendingByCategory = () => {
+const SpendingByCategory = ({ transactions = [] }) => {
   const { isDark } = useTheme();
-  
-  const data = [
-    { name: 'Housing', value: 1200 },
-    { name: 'Food', value: 450 },
-    { name: 'Transportation', value: 300 },
-    { name: 'Entertainment', value: 200 },
-    { name: 'Shopping', value: 350 },
-    { name: 'Others', value: 180 }
-  ];
 
+  const calculateCategoryTotals = () => {
+    // Only include expenses (positive amounts in Plaid are expenses)
+    const expenses = transactions.filter(t => t.amount > 0);
+    
+    // Group by primary category (first category in the array)
+    const categoryTotals = {};
+    expenses.forEach(transaction => {
+      // Get the main category from Plaid's category array
+      const category = transaction.category ? transaction.category[0] : 'Other';
+      if (!categoryTotals[category]) {
+        categoryTotals[category] = 0;
+      }
+      categoryTotals[category] += transaction.amount;
+    });
+
+    // Convert to array format for the pie chart
+    return Object.entries(categoryTotals)
+      .map(([name, value]) => ({
+        name,
+        value: Number(value.toFixed(2))
+      }))
+      .sort((a, b) => b.value - a.value); // Sort by value descending
+  };
+
+  const data = calculateCategoryTotals();
   const COLORS = ['#3B82F6', '#8B5CF6', '#EC4899', '#F59E0B', '#10B981', '#6B7280'];
 
   return (
@@ -34,18 +49,26 @@ const SpendingByCategory = () => {
               dataKey="value"
             >
               {data.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                <Cell 
+                  key={`cell-${index}`} 
+                  fill={COLORS[index % COLORS.length]} 
+                />
               ))}
             </Pie>
-            <Tooltip
+            <Tooltip 
+              formatter={(value) => `$${value.toFixed(2)}`}
               contentStyle={{
                 backgroundColor: isDark ? '#1F2937' : '#FFFFFF',
                 border: 'none',
                 borderRadius: '0.5rem',
               }}
-              formatter={(value) => [`$${value}`, 'Amount']}
             />
-            <Legend />
+            <Legend 
+              formatter={(value) => {
+                const category = data.find(item => item.name === value);
+                return `${value} ($${category.value.toFixed(2)})`;
+              }}
+            />
           </PieChart>
         </ResponsiveContainer>
       </div>

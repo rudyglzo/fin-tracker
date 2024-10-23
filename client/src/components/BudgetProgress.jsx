@@ -1,34 +1,51 @@
-// src/components/BudgetProgress.jsx
 import React from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 
-const BudgetProgress = () => {
+const BudgetProgress = ({ transactions = [] }) => {
   const { isDark } = useTheme();
 
+  // Calculate spending for a specific category
+  const calculateCategorySpending = (categoryName) => {
+    return transactions
+      .filter(t => {
+        // Check if transaction belongs to the category (Plaid categories are arrays)
+        return t.amount > 0 && // Positive amounts are expenses in Plaid
+          t.category?.some(cat => 
+            cat.toLowerCase().includes(categoryName.toLowerCase())
+          );
+      })
+      .reduce((sum, t) => sum + t.amount, 0);
+  };
+
+  // Define budgets with Plaid categories
   const budgets = [
     {
       category: "Food & Dining",
-      spent: 420,
+      spent: calculateCategorySpending('food'),
       limit: 500,
-      color: "blue"
+      color: "blue",
+      matchCategories: ['food', 'restaurants']
     },
     {
       category: "Entertainment",
-      spent: 180,
+      spent: calculateCategorySpending('entertainment'),
       limit: 200,
-      color: "purple"
+      color: "purple",
+      matchCategories: ['entertainment', 'recreation']
     },
     {
       category: "Shopping",
-      spent: 350,
+      spent: calculateCategorySpending('shopping'),
       limit: 300,
-      color: "red"
+      color: "red",
+      matchCategories: ['shops', 'shopping']
     },
     {
       category: "Transportation",
-      spent: 240,
+      spent: calculateCategorySpending('transport'),
       limit: 400,
-      color: "green"
+      color: "green",
+      matchCategories: ['transport', 'travel']
     }
   ];
 
@@ -50,14 +67,22 @@ const BudgetProgress = () => {
             <div key={index} className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span>{budget.category}</span>
-                <span>${budget.spent} / ${budget.limit}</span>
+                <span>
+                  ${budget.spent.toFixed(2)} / ${budget.limit}
+                </span>
               </div>
               <div className={`h-2 rounded-full ${isDark ? 'bg-gray-700' : 'bg-gray-200'}`}>
                 <div
-                  className={`h-full rounded-full ${getProgressColor(budget.spent, budget.limit)}`}
+                  className={`h-full rounded-full ${getProgressColor(budget.spent, budget.limit)} 
+                    transition-all duration-500 ease-in-out`}
                   style={{ width: `${percentage}%` }}
                 />
               </div>
+              {percentage >= 80 && (
+                <p className="text-xs text-red-500">
+                  {percentage >= 100 ? 'Budget exceeded!' : 'Approaching budget limit'}
+                </p>
+              )}
             </div>
           );
         })}
