@@ -40,7 +40,6 @@ router.post('/create-link-token', async (req, res) => {
 router.post('/exchange-token', async (req, res) => {
   try {
     console.log('Exchanging public token:', req.body.public_token);
-    
     const exchangeResponse = await plaidClient.itemPublicTokenExchange({
       public_token: req.body.public_token
     });
@@ -48,16 +47,16 @@ router.post('/exchange-token', async (req, res) => {
     console.log('Access token received');
     const accessToken = exchangeResponse.data.access_token;
     
+    // Get accounts
     console.log('Getting accounts...');
     const accountsResponse = await plaidClient.accountsGet({
       access_token: accessToken
     });
-    console.log('Accounts received:', accountsResponse.data.accounts.length);
-
+    
+    // Get transactions
     console.log('Getting transactions...');
     const startDate = '2023-01-01';
     const endDate = '2024-12-31';
-    
     const transactionsResponse = await plaidClient.transactionsGet({
       access_token: accessToken,
       start_date: startDate,
@@ -66,8 +65,43 @@ router.post('/exchange-token', async (req, res) => {
         count: 500
       }
     });
+
+    // Send back everything including the access token
+    res.json({
+      success: true,
+      accessToken: accessToken, // Include this for client storage
+      accounts: accountsResponse.data.accounts,
+      transactions: transactionsResponse.data.transactions
+    });
+  } catch (error) {
+    console.error('Error in exchange_token:', error);
+    console.error('Error details:', error.response?.data);
+    res.status(500).json({
+      error: error.message,
+      details: error.response?.data
+    });
+  }
+});
+
+// Add a new endpoint to refresh data using stored access token
+router.post('/refresh-data', async (req, res) => {
+  try {
+    const { accessToken } = req.body;
     
-    console.log('Transactions received:', transactionsResponse.data.transactions.length);
+    const accountsResponse = await plaidClient.accountsGet({
+      access_token: accessToken
+    });
+
+    const startDate = '2023-01-01';
+    const endDate = '2024-12-31';
+    const transactionsResponse = await plaidClient.transactionsGet({
+      access_token: accessToken,
+      start_date: startDate,
+      end_date: endDate,
+      options: {
+        count: 500
+      }
+    });
 
     res.json({
       success: true,
@@ -75,8 +109,7 @@ router.post('/exchange-token', async (req, res) => {
       transactions: transactionsResponse.data.transactions
     });
   } catch (error) {
-    console.error('Error in exchange_token:', error);
-    console.error('Error details:', error.response?.data);
+    console.error('Error refreshing data:', error);
     res.status(500).json({
       error: error.message,
       details: error.response?.data

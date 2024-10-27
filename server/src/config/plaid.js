@@ -1,4 +1,4 @@
-// server/src/routes/plaid.js
+// server/src/config/plaid.js
 const express = require('express');
 const router = express.Router();
 const { Configuration, PlaidApi, PlaidEnvironments } = require('plaid');

@@ -20,7 +20,7 @@ const BudgetProgress = ({ transactions = [] }) => {
   // Define budgets with Plaid categories
   const budgets = [
     {
-      category: "Food & Dining",
+      category: "Food & Drink",
       spent: calculateCategorySpending('food'),
       limit: 500,
       color: "blue",
@@ -46,6 +46,14 @@ const BudgetProgress = ({ transactions = [] }) => {
       limit: 400,
       color: "green",
       matchCategories: ['transport', 'travel']
+    }
+    ,
+    {
+      category: "Other",
+      spent: calculateCategorySpending('other'),
+      limit: 400,
+      color: "purple",
+      matchCategories: ['Other', 'other']
     }
   ];
 

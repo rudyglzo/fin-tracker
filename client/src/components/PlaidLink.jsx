@@ -1,14 +1,17 @@
+// client/src/components/PlaidLink.jsx
 import React, { useCallback, useEffect, useState } from 'react';
 import { usePlaidLink } from 'react-plaid-link';
 import axios from 'axios';
 import { Link } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
+import { usePlaid } from '../contexts/PlaidContext';
 
-const PlaidLinkComponent = ({ onSuccess }) => {
+const PlaidLinkComponent = () => {
   const [linkToken, setLinkToken] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const { isDark } = useTheme();
+  const { handlePlaidSuccess, isConnected } = usePlaid();
 
   useEffect(() => {
     const generateToken = async () => {
@@ -25,15 +28,19 @@ const PlaidLinkComponent = ({ onSuccess }) => {
         setLoading(false);
       }
     };
-    generateToken();
-  }, []);
 
-  const onPlaidSuccess = useCallback((public_token, metadata) => {
-    console.log('Plaid Link success');
-    console.log('Public token:', public_token);
-    console.log('Metadata:', metadata);
-    onSuccess(public_token);
-  }, [onSuccess]);
+    if (!isConnected) {
+      generateToken();
+    }
+  }, [isConnected]);
+
+  const onPlaidSuccess = useCallback(
+    (public_token, metadata) => {
+      console.log('Plaid Link success');
+      handlePlaidSuccess(public_token);
+    },
+    [handlePlaidSuccess]
+  );
 
   const config = {
     token: linkToken,
@@ -48,6 +55,10 @@ const PlaidLinkComponent = ({ onSuccess }) => {
 
   const { open, ready } = usePlaidLink(config);
 
+  if (isConnected) {
+    return null; // Don't show the connect button if already connected
+  }
+
   return (
     <div className="text-center">
       {error && (
@@ -55,18 +66,16 @@ const PlaidLinkComponent = ({ onSuccess }) => {
           {error}
         </div>
       )}
-      
       <button
         onClick={() => open()}
         disabled={!ready || loading}
         className={`mt-4 px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg
-          flex items-center justify-center mx-auto space-x-2 
+          flex items-center justify-center mx-auto space-x-2
           ${(!ready || loading) ? 'opacity-50 cursor-not-allowed' : ''}`}
       >
         <Link className="h-5 w-5" />
         <span>{loading ? 'Connecting...' : 'Connect Your Bank'}</span>
       </button>
-      
       <div className="mt-4 text-sm text-gray-500">
         <p>For testing, use these credentials:</p>
         <p className="font-mono mt-1">Username: user_good</p>

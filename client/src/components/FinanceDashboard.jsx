@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import axios from 'axios';
+import React, { useEffect } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
+import { usePlaid } from '../contexts/PlaidContext';
 import { Building } from 'lucide-react';
 import PlaidLinkComponent from './PlaidLink';
 import OverviewCards from './OverviewCards';
@@ -10,41 +10,42 @@ import MonthlyTrends from './MonthlyTrends';
 
 const FinanceDashboard = () => {
   const { isDark } = useTheme();
-  const [isLinked, setIsLinked] = useState(false);
-  const [transactions, setTransactions] = useState([]);
-  const [accounts, setAccounts] = useState([]);
+  const { 
+    isConnected, 
+    transactions, 
+    accounts, 
+    loading,
+    handlePlaidSuccess
+  } = usePlaid();
 
-  const handlePlaidSuccess = async (publicToken) => {
-    try {
-      console.log('Starting token exchange with public token:', publicToken);
-      
-      const response = await axios.post('http://localhost:5001/api/plaid/exchange-token', {
-        public_token: publicToken
+  // Debug logging
+  useEffect(() => {
+    if (isConnected) {
+      console.log('Dashboard data:', {
+        transactionsCount: transactions?.length || 0,
+        accountsCount: accounts?.length || 0,
+        sampleTransaction: transactions?.[0],
+        sampleAccount: accounts?.[0]
       });
-      
-      console.log('Full response from server:', response.data);
-      console.log('Number of transactions:', response.data.transactions?.length);
-      console.log('Number of accounts:', response.data.accounts?.length);
-
-      if (response.data.transactions) {
-        setTransactions(response.data.transactions);
-        setAccounts(response.data.accounts || []);
-        setIsLinked(true);
-        console.log('State updated with transactions and accounts');
-      } else {
-        console.error('No transactions in response');
-      }
-    } catch (error) {
-      console.error('Error in handlePlaidSuccess:', error);
-      console.error('Error response:', error.response?.data);
     }
-  };
+  }, [isConnected, transactions, accounts]);
 
-  console.log('Current state:', { isLinked, transactionCount: transactions.length });
+  if (loading) {
+    return (
+      <div className={`rounded-lg shadow-lg p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+        <div className="text-center">
+          <Building className={`h-12 w-12 mx-auto ${isDark ? 'text-blue-400' : 'text-blue-600'} animate-pulse`} />
+          <p className={`mt-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+            Loading your financial data...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      {!isLinked ? (
+      {!isConnected ? (
         <div className={`rounded-lg shadow-lg p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
           <div className="text-center">
             <Building className={`h-12 w-12 mx-auto ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
@@ -56,15 +57,22 @@ const FinanceDashboard = () => {
           </div>
         </div>
       ) : (
-        <>
-          {console.log('Rendering dashboard with transactions:', transactions.length)}
-          <OverviewCards transactions={transactions} accounts={accounts} />
+        <div className="space-y-6">
+          {/* Overview Cards showing total balance, monthly spending, savings, and bills */}
+          <OverviewCards 
+            transactions={transactions || []} 
+            accounts={accounts || []} 
+          />
+          
+          {/* Two-column layout for Spending and Budget */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <SpendingByCategory transactions={transactions} />
-            <BudgetProgress transactions={transactions} />
+            <SpendingByCategory transactions={transactions || []} />
+            <BudgetProgress transactions={transactions || []} />
           </div>
-          <MonthlyTrends transactions={transactions} />
-        </>
+          
+          {/* Monthly trends chart */}
+          <MonthlyTrends transactions={transactions || []} />
+        </div>
       )}
     </div>
   );
