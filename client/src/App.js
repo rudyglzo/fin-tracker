@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { PlaidProvider } from './contexts/PlaidContext';
+import { BudgetProvider } from './contexts/BudgetContext';
 import MainLayout from './layouts/MainLayout';
 import FinanceDashboard from './components/FinanceDashboard';
 import Transactions from './components/Transactions';
@@ -26,11 +27,10 @@ function App() {
     const isPlaidConnected = sessionStorage.getItem('plaidAccessToken');
     if (isPlaidConnected) {
       const confirm = window.confirm(
-        'Going back will disconnect your bank account. Continue?'
+        'Going back will disconnect your bank account and reset all budgets. Continue?'
       );
       if (!confirm) return;
     }
-
     // Clear all session data
     sessionStorage.clear();
     setShowDemo(false);
@@ -47,30 +47,32 @@ function App() {
   return (
     <ThemeProvider>
       <PlaidProvider>
-        {!showDemo ? (
-          <Welcome onStartDemo={handleStartDemo} />
-        ) : (
-          <Router>
-            <MainLayout onBack={handleBack}>
-              <Routes>
-                <Route 
-                  path="/" 
-                  element={
-                    <Navigate 
-                      to={sessionStorage.getItem('lastPath') || '/dashboard'} 
-                      replace 
-                    />
-                  } 
-                />
-                <Route path="/dashboard" element={<FinanceDashboard />} />
-                <Route path="/transactions" element={<Transactions />} />
-                <Route path="/analytics" element={<Analytics />} />
-                <Route path="/budget" element={<Budget />} />
-                <Route path="/settings" element={<Settings />} />
-              </Routes>
-            </MainLayout>
-          </Router>
-        )}
+        <BudgetProvider>
+          {!showDemo ? (
+            <Welcome onStartDemo={handleStartDemo} />
+          ) : (
+            <Router>
+              <MainLayout onBack={handleBack}>
+                <Routes>
+                  <Route
+                    path="/"
+                    element={
+                      <Navigate
+                        to={sessionStorage.getItem('lastPath') || '/dashboard'}
+                        replace
+                      />
+                    }
+                  />
+                  <Route path="/dashboard" element={<FinanceDashboard />} />
+                  <Route path="/transactions" element={<Transactions />} />
+                  <Route path="/analytics" element={<Analytics />} />
+                  <Route path="/budget" element={<Budget />} />
+                  <Route path="/settings" element={<Settings />} />
+                </Routes>
+              </MainLayout>
+            </Router>
+          )}
+        </BudgetProvider>
       </PlaidProvider>
     </ThemeProvider>
   );
