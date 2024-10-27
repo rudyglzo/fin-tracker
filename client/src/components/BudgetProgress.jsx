@@ -46,13 +46,18 @@ const BudgetProgress = ({ transactions = [], allowEdit = false }) => {
   };
 
   const getProgressColor = (spent, limit) => {
-    const percentage = (spent / limit) * 100;
-    if (percentage >= 100) return 'bg-red-500';
-    if (percentage >= 75) return 'bg-orange-500';
-    if (percentage >=50) return 'bg-blue-500';
-    if (percentage >=25) return 'bg-purple-500';
-    if (percentage >=5) return 'bg-grey-500';
-    return 'bg-green-500';
+    const percentage = Math.min((spent / limit) * 100, 100);
+
+    // If budget is exceeded, return red
+    if (spent > limit) {
+        return `rgb(255, 0, 0)`; // Red
+    }
+
+    // Transition from green (0%) to yellow (50%) to red (100%)
+    const red = percentage >= 50 ? 255 : Math.floor((percentage / 50) * 255);
+    const green = percentage <= 50 ? 255 : Math.floor((1 - (percentage - 50) / 50) * 255);
+
+    return `rgb(${red}, ${green}, 0)`;
   };
 
   return (
@@ -61,6 +66,7 @@ const BudgetProgress = ({ transactions = [], allowEdit = false }) => {
       <div className="space-y-4">
         {budgets.map((budget) => {
           const percentage = Math.min(100, (budget.spent / budget.limit) * 100);
+
           return (
             <div key={budget.category} className="space-y-2">
               <div className="flex justify-between text-sm items-center">
@@ -74,9 +80,7 @@ const BudgetProgress = ({ transactions = [], allowEdit = false }) => {
                         value={editValue}
                         onChange={(e) => setEditValue(e.target.value)}
                         className={`w-24 px-2 py-1 rounded ${
-                          isDark 
-                            ? 'bg-gray-700 text-white' 
-                            : 'bg-white text-gray-900'
+                          isDark ? 'bg-gray-700 text-white' : 'bg-white text-gray-900'
                         } border`}
                       />
                       <button
@@ -109,13 +113,15 @@ const BudgetProgress = ({ transactions = [], allowEdit = false }) => {
               </div>
               <div className={`h-2 rounded-full ${isDark ? 'bg-gray-700' : 'bg-gray-200'}`}>
                 <div
-                  className={`h-full rounded-full ${getProgressColor(budget.spent, budget.limit)}
-                    transition-all duration-500 ease-in-out`}
-                  style={{ width: `${percentage}%` }}
+                  className="h-full rounded-full transition-all duration-500 ease-in-out"
+                  style={{
+                    width: `${percentage}%`,
+                    backgroundColor: getProgressColor(budget.spent, budget.limit)
+                  }}
                 />
               </div>
               {percentage >= 80 && (
-                <p className="text-xs text-red-500">
+                <p className="text-xs text-red-900">
                   {percentage >= 100 ? 'Budget exceeded!' : 'Approaching budget limit'}
                 </p>
               )}
