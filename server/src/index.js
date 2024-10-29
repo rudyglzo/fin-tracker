@@ -10,7 +10,7 @@ const app = express();
 const allowedOrigins = [
   'http://localhost:3000',                     // Local development
   'https://fiscal-compass-beryl.vercel.app',   // Production frontend
-  'https://fin-tracker-backend.vercel.app'     // Production backend
+  'https://fiscal-compass-backend.vercel.app'     // Production backend
 ];
 
 app.use(cors({
