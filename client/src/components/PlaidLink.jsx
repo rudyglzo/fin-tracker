@@ -77,9 +77,9 @@ const PlaidLinkComponent = () => {
         <span>{loading ? 'Connecting...' : 'Connect Your Bank'}</span>
       </button>
       <div className="mt-4 text-sm text-gray-500">
-        <p>For testing, use these credentials:</p>
-        <p className="font-mono mt-1">Username: user_good</p>
-        <p className="font-mono">Password: pass_good</p>
+        <p className="text-xs italic mt-2">
+          Note: This is a sandbox environment. Please do not use real banking credentials.
+        </p>
       </div>
     </div>
   );

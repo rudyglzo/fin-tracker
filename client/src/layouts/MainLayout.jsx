@@ -92,7 +92,9 @@ const MainLayout = ({ children, onBack }) => {
               {onBack && (
                 <button
                   onClick={handleBack}
-                  className={`mr-4 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700`}
+                  className={`mr-4 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 
+                    text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 
+                    transition-colors`}
                   title="Back to Welcome Page"
                 >
                   <ArrowLeft className="h-5 w-5" />

@@ -3,15 +3,12 @@ import { useTheme } from '../contexts/ThemeContext';
 import { 
   User, 
   Bell, 
-  Monitor, // Changed from Display
+  Monitor, 
   Shield, 
   CreditCard, 
   HelpCircle,
   ChevronRight,
-  Sun,
-  Moon,
   Wallet,
-  Settings2 // Added if we need a general settings icon
 } from 'lucide-react';
 
 const Settings = () => {
