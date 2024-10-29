@@ -39,7 +39,7 @@ export const PlaidProvider = ({ children }) => {
       setLoading(true);
       console.log('Exchanging public token:', publicToken);
       
-      const response = await axios.post('http://localhost:5001/api/plaid/exchange-token', {
+      const response = await axios.post('https://fiscal-compass-backend.vercel.app/api/plaid/exchange-token', {
         public_token: publicToken
       });
 

@@ -18,7 +18,7 @@ const PlaidLinkComponent = () => {
       try {
         setLoading(true);
         console.log('Requesting link token...');
-        const response = await axios.post('http://localhost:5001/api/plaid/create-link-token');
+        const response = await axios.post('https://fiscal-compass-backend.vercel.app/api/plaid/create-link-token');
         console.log('Link token received:', response.data);
         setLinkToken(response.data.link_token);
       } catch (error) {
