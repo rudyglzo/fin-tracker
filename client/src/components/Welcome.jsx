@@ -12,7 +12,7 @@ const Welcome = ({ onStartDemo }) => {
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex items-center space-x-2">
             <Wallet className={`h-6 w-6 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
-            <span className="text-xl font-bold">FinanceTracker</span>
+            <span className="text-xl font-bold">Fiscal Compass</span>
           </div>
           <button
             onClick={toggleTheme}

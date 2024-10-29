@@ -104,7 +104,7 @@ const MainLayout = ({ children, onBack }) => {
               <span className={`ml-2 text-xl font-bold ${
                 isDark ? 'text-white' : 'text-gray-900'
               }`}>
-                FinanceTracker Demo
+                Fiscal Compass
               </span>
             </div>
             <div className="flex items-center space-x-4">
